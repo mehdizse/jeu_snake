@@ -12,11 +12,11 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
-Snake >> "y<=60 top border"
-"x>=760 right border"
-"y>=560 bottom border"
-checkCollisionWithBorder [
+Snake >> checkCollisionWithBorder [
     |pos|
+    "y<=60 top border"
+    "x>=760 right border"
+    "y>=560 bottom border"
     pos:= head x <= 20 or: [head y <= 60 or: [head x >= 760 or: [head y >= 560]]].
    ^pos.
 ]
