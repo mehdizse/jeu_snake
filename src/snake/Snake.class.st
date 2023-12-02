@@ -66,23 +66,20 @@ Snake >> lastDirection [
 ]
 
 { #category : #accessing }
+Snake >> lastDirection: aLastDirection [
+ lastDirection := aLastDirection.
+]
+
+{ #category : #accessing }
 Snake >> move: directionString [
-    | direction newPosition |
-    
+    | direction newPosition oppositeDirection |
+
     direction := directionString caseOf: {
         ['up'] -> [ 0 @ -20 ].
         ['down'] -> [ 0 @ 20 ].
         ['left'] -> [ -20 @ 0 ].
         ['right'] -> [ 20 @ 0 ].
     } otherwise: [ 0 @ 0 ].
-
-    "Ignore moves in the opposite direction"
-    direction = (lastDirection caseOf: {
-        ['up'] -> [ 0 @ 20 ].
-        ['down'] -> [ 0 @ -20 ].
-        ['left'] -> [ 20 @ 0 ].
-        ['right'] -> [ -20 @ 0 ].
-    } otherwise: [ 0 @ 0 ]) ifTrue: [ ^ self ].
 
     newPosition := head + direction.
 
@@ -92,10 +89,10 @@ Snake >> move: directionString [
             head := newPosition.
             segments add: head.
             hasEatenFood ifFalse: [ segments removeFirst ].
+            lastDirection := directionString. "Update lastDirection only when the move is performed"
         ]
-        ifFalse: [ ^ self ].  "Do nothing if the new position is out of bounds"
+        ifFalse: [ ^ newPosition ].  "Do nothing if the new position is out of bounds"
 
-    lastDirection := directionString.
     ^ newPosition.
 ]
 

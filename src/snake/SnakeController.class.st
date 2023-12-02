@@ -6,7 +6,9 @@ Class {
 		'model',
 		'food',
 		'foodElements',
-		'space'
+		'space',
+		'directionProcess',
+		'scoreElement'
 	],
 	#category : #snake
 }
@@ -32,7 +34,7 @@ SnakeController >> createCloseButton [
         position: (760@10);
         size: (30@30);
         background: Color red;
-        when: BlClickEvent do: [ space close ].
+        when: BlClickEvent do: [ space close. self stopMoving. ].
     closeButton addChild: (BlTextElement new
         text: ('X' asRopedText fontSize: 35);
         position: (7@5)).
@@ -41,13 +43,11 @@ SnakeController >> createCloseButton [
 
 { #category : #'as yet unclassified' }
 SnakeController >> createScoreElement [
-    | scoreElement |
     scoreElement := BlTextElement new.
     scoreElement
         position: (10@10);
         size: (100@20);
-        text: (('Score: ' , model score asString) asRopedText fontSize: 20).
-    ^ scoreElement
+        text: (('Score: ' , model score asString) asRopedText bold fontSize: 20).
 ]
 
 { #category : #'as yet unclassified' }
@@ -65,23 +65,23 @@ SnakeController >> createWalls [
 
 { #category : #'as yet unclassified' }
 SnakeController >> gameOver [
+    
+    foodElements do: [ :foodElement | game removeChild: foodElement ].
+    foodElements removeAll.
+    foodElements add: (game updateFoodPosition: food position).
+    game updateHeadPosition: model position segments: model segments.
+      
     game childrenDo: [ :child | 
         (foodElements includes: child) ifFalse: [ 
             game removeChild: child.
         ]
     ].
-      "Remove all children from space root"
+    "Remove all children from space root"
     space root childrenDo: [ :child | space root removeChild: child ].
     space close.
-    self gameOverScreen:model score.   
+    self gameOverScreen:model score.
     model initialize.
-    foodElements do: [ :foodElement | game removeChild: foodElement ].
-    foodElements removeAll.
-    foodElements add: (game updateFoodPosition: food position).
-    
-    game updateHeadPosition: model position segments: model segments.
-    
-    
+    self stopMoving.
 ]
 
 { #category : #'as yet unclassified' }
@@ -90,13 +90,13 @@ SnakeController >> gameOverScreen: score [
 
     gameOverSpace := BlSpace new extent: (800@600); title:'Game Over'.
     gameOverSpace root addChild: self createBackGroundImage.
-    gameOverTitle := BlTextElement new text: (('Game over' asRopedText fontSize: 60) foreground: Color red);position: (30@30).
+    gameOverTitle := BlTextElement new text: (('Game over' asRopedText fontSize: 60) bold foreground: Color red);position: (30@30).
     gameOverSpace root addChild: gameOverTitle.
     gameOverTitle layout.
     gameOverTitle position: (250 @ 40).
 
     "Create a new BlTextElement for the score"
-    scoreText := BlTextElement new text: (('Score obtenu: ', score asString) asRopedText fontSize: 30); position: (300 @ 150).
+    scoreText := BlTextElement new text: (('Score obtenu: ', score asString) asRopedText bold fontSize: 30); position: (300 @ 150).
     gameOverSpace root addChild: scoreText.
 
     recommencerButton := BlElement new.
@@ -120,7 +120,7 @@ SnakeController >> gameOverScreen: score [
         size: (400@50);
         background: Color red;
         border: (BlBorder paint: Color black width: 2);
-        when: BlClickEvent do: [ gameOverSpace close ].
+        when: BlClickEvent do: [ gameOverSpace close. self stopMoving. ].
 
     fermerButton addChild: (BlTextElement new
         text: ('Fermer le jeu' asRopedText fontSize: 30);
@@ -142,49 +142,49 @@ SnakeController >> getDirectionStringFromKeyCode: keyCode [
 ]
 
 { #category : #'as yet unclassified' }
-SnakeController >> handleCollisionWithBorder: scoreElement [
+SnakeController >> handleCollisionWithBorder [
     (model checkCollisionWithBorder) ifTrue: [
         self gameOver.
-        scoreElement text: (('Score: ', model score asString) asRopedText fontSize: 20).
+        scoreElement text: (('Score: ', model score asString) asRopedText bold fontSize: 20).
     ].
 ]
 
 { #category : #'as yet unclassified' }
-SnakeController >> handleCollisionWithFood: scoreElement [
+SnakeController >> handleCollisionWithFood [
     (model checkCollisionWithFood: food) ifTrue: [
         food initialize.
         foodElements do: [ :foodElement | game removeChild: foodElement ].
         foodElements removeAll.
         foodElements add: (game updateFoodPosition: food position).
-        scoreElement text: (('Score: ', model score asString) asRopedText fontSize: 20).
+        scoreElement text: (('Score: ', model score asString)  asRopedText bold fontSize: 20).
     ].
 ]
 
 { #category : #'as yet unclassified' }
-SnakeController >> handleCollisionWithSelf: newPosition scoreElement: scoreElement [
+SnakeController >> handleCollisionWithSelf: newPosition [ 
     (model checkCollisionWithSelf: newPosition) ifTrue: [
         self gameOver.
-        scoreElement text: (('Score: ', model score asString) asRopedText fontSize: 20).
+        scoreElement text: (('Score: ', model score asString) asRopedText bold fontSize: 20).
     ].
 ]
 
 { #category : #'as yet unclassified' }
-SnakeController >> handleKeyboardWithScoreElement: scoreElement [
+SnakeController >> handleKeyboard [
     game space root when: BlKeyDownEvent do: [ :event |
-        | keyCode directionString newPosition |
+        | keyCode directionString oppositeDirection |
+
         keyCode := event key value.
         directionString := self getDirectionStringFromKeyCode: keyCode.
 
-        newPosition := model move: directionString.
+        oppositeDirection := model lastDirection caseOf: {
+            ['up'] -> [ 'down' ].
+            ['down'] -> [ 'up' ].
+            ['left'] -> [ 'right' ].
+            ['right'] -> [ 'left' ].
+        } otherwise: [ '' ].
 
-        self removeNonFoodElementsFromGame.
-
-        game updateHeadPosition: model position segments: model segments.
-        model hasEatenFood: false.
-
-        self handleCollisionWithFood: scoreElement.
-        self handleCollisionWithBorder: scoreElement.
-        self handleCollisionWithSelf: newPosition scoreElement: scoreElement.
+        "Only update lastDirection if the new direction is not opposite to the last direction"
+        directionString = oppositeDirection ifFalse: [ model lastDirection: directionString ].
     ].
 ]
 
@@ -194,6 +194,7 @@ SnakeController >> initialize [
     model := Snake new.
 	 food := Food new.
 	 foodElements := OrderedCollection new.
+	 directionProcess := nil.
 ]
 
 { #category : #initialization }
@@ -209,13 +210,23 @@ SnakeController >> initializeSpace [
 ]
 
 { #category : #'as yet unclassified' }
+SnakeController >> move [
+    | newPosition |
+    newPosition := model move: model lastDirection.
+    self removeNonFoodElementsFromGame.
+    game updateHeadPosition: model position segments: model segments.
+    model hasEatenFood: false.
+    self handleCollisionWithFood.
+    self handleCollisionWithBorder.
+    self handleCollisionWithSelf: newPosition.
+]
+
+{ #category : #'as yet unclassified' }
 SnakeController >> openGame [
-    | scoreElement |
 
     self initializeSpace.
-    scoreElement := self createScoreElement.
+    self createScoreElement.
     
-
     space root addChild: scoreElement.
 
     self createWalls.
@@ -224,8 +235,10 @@ SnakeController >> openGame [
     game updateHeadPosition: model position segments: model segments.
     self initializeFoodElements.
 
-    self handleKeyboardWithScoreElement: scoreElement.
-    space show.
+    self handleKeyboard.
+    self startMoving.
+
+    space show.  "Show the space again"
 ]
 
 { #category : #removing }
@@ -236,19 +249,29 @@ SnakeController >> removeNonFoodElementsFromGame [
 ]
 
 { #category : #'as yet unclassified' }
+SnakeController >> startMoving [
+    directionProcess := [
+        [true] whileTrue: [
+            self move.
+            (Delay forMilliseconds: 200) wait.
+        ]
+    ] fork.
+]
+
+{ #category : #'as yet unclassified' }
 SnakeController >> startScreen [
     | startSpace title startButton closeButton |
-    
-    startSpace := BlSpace new extent: (800@600); title:'Start Screen'; resizable: false.
+    BlText.
+    startSpace := BlSpace new extent: (800@600); title:'JEU SNAKE'; resizable: false.
     startSpace root addChild: self createBackGroundImage.  
     title := BlTextElement new.
     title
-        text: ('JEU SNAKE' asRopedText fontSize: 50);
+        text: ('JEU SNAKE' asRopedText bold fontSize: 100);
         position: (30@30).
     startSpace root addChild: title.
     
     "Center the title horizontally and place it at a specific height"
-    title position: (250 @ 40).
+    title position: (120 @ 40).
     
     "Create a start button"
     startButton := BlElement new.
@@ -282,4 +305,9 @@ SnakeController >> startScreen [
     closeButton position: (230 @ 375).
     
     startSpace show.
+]
+
+{ #category : #'as yet unclassified' }
+SnakeController >> stopMoving [
+    directionProcess ifNotNil: [directionProcess terminate].
 ]
