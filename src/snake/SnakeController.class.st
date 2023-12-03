@@ -183,7 +183,6 @@ SnakeController >> handleKeyboard [
             ['right'] -> [ 'left' ].
         } otherwise: [ '' ].
 
-        "Only update lastDirection if the new direction is not opposite to the last direction"
         directionString = oppositeDirection ifFalse: [ model lastDirection: directionString ].
     ].
 ]
