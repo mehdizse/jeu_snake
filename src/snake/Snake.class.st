@@ -13,9 +13,12 @@ Class {
 
 { #category : #'as yet unclassified' }
 Snake >> checkCollisionWithBorder [
-    |pos|
-    pos:= head x <= 20 or: [head y <= 60 or: [head x >= 760 or: [head y >= 560]]].
-   ^pos.
+    |collid|
+    "comparer si la tete du serpent a heurter un des murs "
+   "x<=20 mure gauche    y<=60 mure haut   x>=760 mure droit  y>=560 mure bas"
+   "si l'une des conditions est vrai on renvoie true c'est a dire collision" 
+    collid:= head x <= 20 or: [head y <= 60 or: [head x >= 760 or: [head y >= 560]]].
+   ^collid.
 ]
 
 { #category : #'as yet unclassified' }
@@ -32,6 +35,7 @@ Snake >> checkCollisionWithFood: aFood [
 { #category : #'as yet unclassified' }
 Snake >> checkCollisionWithSelf: newPosition [
     | bodySegments collision |
+    "comparerer la nouvelle position de la tete avec tous les autre segments "
     bodySegments := segments allButLast.
     collision := bodySegments includes: newPosition.
     ^ collision
@@ -72,7 +76,7 @@ Snake >> lastDirection: aLastDirection [
 
 { #category : #accessing }
 Snake >> move: directionString [
-    | direction newPosition oppositeDirection |
+    | direction newPosition|
 
     direction := directionString caseOf: {
         ['up'] -> [ 0 @ -20 ].

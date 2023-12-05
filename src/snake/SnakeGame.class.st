@@ -1,6 +1,9 @@
 Class {
 	#name : #SnakeGame,
 	#superclass : #BlElement,
+	#instVars : [
+		'walls'
+	],
 	#category : #snake
 }
 
@@ -9,6 +12,7 @@ SnakeGame >> initialize [
     super initialize.
     self size: (800@600).
     self background: Color white.
+
     
 ]
 
