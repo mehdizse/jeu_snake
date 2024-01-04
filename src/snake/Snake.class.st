@@ -14,9 +14,6 @@ Class {
 { #category : #'as yet unclassified' }
 Snake >> checkCollisionWithBorder [
     |collid|
-    "comparer si la tete du serpent a heurter un des murs "
-   "x<=20 mure gauche    y<=60 mure haut   x>=760 mure droit  y>=560 mure bas"
-   "si l'une des conditions est vrai on renvoie true c'est a dire collision" 
     collid:= head x <= 20 or: [head y <= 60 or: [head x >= 760 or: [head y >= 560]]].
    ^collid.
 ]
@@ -35,7 +32,6 @@ Snake >> checkCollisionWithFood: aFood [
 { #category : #'as yet unclassified' }
 Snake >> checkCollisionWithSelf: newPosition [
     | bodySegments collision |
-    "comparerer la nouvelle position de la tete avec tous les autre segments "
     bodySegments := segments allButLast.
     collision := bodySegments includes: newPosition.
     ^ collision
@@ -51,9 +47,13 @@ Snake >> hasEatenFood: aBoolean [
     hasEatenFood := aBoolean.
 ]
 
+{ #category : #accessing }
+Snake >> head [ 
+ ^head.
+]
+
 { #category : #initialization }
 Snake >> initialize [
-    "Set the initial position before moving the snake"
     head := 100@200.
     segments := OrderedCollection new.
     "Initialize the segments with a few positions to the left of the head"
@@ -76,7 +76,16 @@ Snake >> lastDirection: aLastDirection [
 
 { #category : #accessing }
 Snake >> move: directionString [
-    | direction newPosition|
+    | direction newPosition oppositeDirection |
+
+    oppositeDirection := lastDirection caseOf: {
+        ['up'] -> [ 'down' ].
+        ['down'] -> [ 'up' ].
+        ['left'] -> [ 'right' ].
+        ['right'] -> [ 'left' ].
+    } otherwise: [ '' ].
+
+    directionString = oppositeDirection ifTrue: [ ^ head ].
 
     direction := directionString caseOf: {
         ['up'] -> [ 0 @ -20 ].
@@ -95,7 +104,7 @@ Snake >> move: directionString [
             hasEatenFood ifFalse: [ segments removeFirst ].
             lastDirection := directionString. "Update lastDirection only when the move is performed"
         ]
-        ifFalse: [ ^ newPosition ].  "Do nothing if the new position is out of bounds"
+        ifFalse: [ ^ newPosition ].
 
     ^ newPosition.
 ]
