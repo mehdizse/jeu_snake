@@ -66,47 +66,62 @@ SnakeController >> gameOver [
 
 { #category : #'as yet unclassified' }
 SnakeController >> gameOverScreen [
-    | gameOverSpace gameOverTitle recommencerButton fermerButton scoreText |
 
-    gameOverSpace := BlSpace new extent: (800@600); title:'Game Over'.
-    gameOverSpace root addChild: self createBackGroundImage.
-    gameOverTitle := BlTextElement new text: (('Game over' asRopedText fontSize: 60) bold foreground: Color red);position: (30@30).
-    gameOverSpace root addChild: gameOverTitle.
-    gameOverTitle position: (250 @ 40).
+	| gameOverSpace gameOverTitle recommencerButton fermerButton scoreText |
+	gameOverSpace := BlSpace new
+		                 extent: 800 @ 600;
+		                 title: 'Game Over'.
+	gameOverSpace root addChild: self createBackGroundImage.
+	gameOverTitle := BlTextElement new
+		                 text:
+			                 (('Game over' asRopedText fontSize: 60) bold
+				                  foreground: Color red);
+		                 position: 30 @ 30.
+	gameOverSpace root addChild: gameOverTitle.
+	gameOverTitle position: 250 @ 40.
 
-    scoreText := BlTextElement new text: (('Score obtenu: ', snake score asString) asRopedText bold fontSize: 30); position: (300 @ 150).
-    gameOverSpace root addChild: scoreText.
+	scoreText := BlTextElement new
+		             text:
+			             (('Score obtenu: ' , snake score asString) asRopedText
+				              bold fontSize: 30);
+		             position: 300 @ 150.
+	gameOverSpace root addChild: scoreText.
 
-    recommencerButton := BlElement new.
-    recommencerButton
-        size: (400@50);
-        background: Color green;
-        border: (BlBorder paint: Color black width: 2);
-        when: BlClickEvent do: [  
-            gameOverSpace close.
-            self openGame.
-        ].
+	recommencerButton := BlElement new.
+	recommencerButton
+		size: 400 @ 50;
+		background: Color green;
+		border: (BlBorder paint: Color black width: 2);
+		addEventHandler: (BlEventHandler
+				 on: BlClickEvent
+				 do: [
+					 gameOverSpace close.
+					 self openGame ]).
 
-    recommencerButton addChild: (BlTextElement new
-        text: ('Recommencer la partie' asRopedText fontSize: 30);
-        position: (40@10)).
-    gameOverSpace root addChild: recommencerButton.
-    recommencerButton position: (210 @ 275).
+	recommencerButton addChild: (BlTextElement new
+			 text: ('Recommencer la partie' asRopedText fontSize: 30);
+			 position: 40 @ 10).
+	gameOverSpace root addChild: recommencerButton.
+	recommencerButton position: 210 @ 275.
 
-    fermerButton := BlElement new.
-    fermerButton
-        size: (400@50);
-        background: Color red;
-        border: (BlBorder paint: Color black width: 2);
-        when: BlClickEvent do: [ gameOverSpace close. self stopMoving. ].
+	fermerButton := BlElement new.
+	fermerButton
+		size: 400 @ 50;
+		background: Color red;
+		border: (BlBorder paint: Color black width: 2);
+		addEventHandler: (BlEventHandler
+				 on: BlClickEvent
+				 do: [
+					 gameOverSpace close.
+					 self stopMoving ]).
 
-    fermerButton addChild: (BlTextElement new
-        text: ('Fermer le jeu' asRopedText fontSize: 30);
-        position: (110@10)).
-    gameOverSpace root addChild: fermerButton.
-    fermerButton position: (210 @ 375).
+	fermerButton addChild: (BlTextElement new
+			 text: ('Fermer le jeu' asRopedText fontSize: 30);
+			 position: 110 @ 10).
+	gameOverSpace root addChild: fermerButton.
+	fermerButton position: 210 @ 375.
 
-    gameOverSpace show.
+	gameOverSpace show
 ]
 
 { #category : #'as yet unclassified' }
@@ -147,21 +162,24 @@ SnakeController >> handleCollisionWithSelf: newPosition [
 
 { #category : #'as yet unclassified' }
 SnakeController >> handleKeyboard [
-    game space root when: BlKeyDownEvent do: [ :event |
-        | keyCode directionString oppositeDirection |
 
-        keyCode := event key value.
-        directionString := self getDirectionStringFromKeyCode: keyCode.
+	game space root addEventHandler: (BlEventHandler
+			 on: BlKeyDownEvent
+			 do: [ :event |
+				 | keyCode directionString oppositeDirection |
+				 keyCode := event key value.
+				 directionString := self getDirectionStringFromKeyCode: keyCode.
 
-        oppositeDirection := snake lastDirection caseOf: {
-            ['up'] -> [ 'down' ].
-            ['down'] -> [ 'up' ].
-            ['left'] -> [ 'right' ].
-            ['right'] -> [ 'left' ].
-        } otherwise: [ '' ].
+				 oppositeDirection := snake lastDirection
+					                      caseOf: {
+							                      ([ 'up' ] -> [ 'down' ]).
+							                      ([ 'down' ] -> [ 'up' ]).
+							                      ([ 'left' ] -> [ 'right' ]).
+							                      ([ 'right' ] -> [ 'left' ]) }
+					                      otherwise: [ '' ].
 
-        directionString = oppositeDirection ifFalse: [snake lastDirection: directionString ].
-    ].
+				 directionString = oppositeDirection ifFalse: [
+					 snake lastDirection: directionString ] ])
 ]
 
 { #category : #initialization }
@@ -237,47 +255,54 @@ SnakeController >> startMoving [
 
 { #category : #'as yet unclassified' }
 SnakeController >> startScreen [
-    | startSpace title startButton closeButton |
-    BlText.
-    startSpace := BlSpace new extent: (800@600); title:'JEU SNAKE'; resizable: false.
-    startSpace root addChild: self createBackGroundImage.  
-    title := BlTextElement new.
-    title
-        text: ('JEU SNAKE' asRopedText bold fontSize: 100);
-        position: (30@30).
-    startSpace root addChild: title.
-    title position: (120 @ 40).
 
-    startButton := BlElement new.
-    startButton
-        size: (300@50);
-        background: Color green;
-        border: (BlBorder paint: Color black width: 2);
-        when: BlClickEvent do: [  
-            startSpace close.
-            self openGame.
-        ].
-    
-    startButton addChild: (BlTextElement new
-        text: ('Commencer le jeu' asRopedText fontSize: 30);
-        position: (40@10)).
-    startSpace root addChild: startButton.
-    startButton position: (230 @ 275).
-    
-    closeButton := BlElement new.
-    closeButton
-        size: (300@50);
-        background: Color red;
-        border: (BlBorder paint: Color black width: 2);
-        when: BlClickEvent do: [ startSpace close ].
-    
-    closeButton addChild: (BlTextElement new
-        text: ('Fermer' asRopedText fontSize: 30);
-        position: (110@10)).
-    startSpace root addChild: closeButton.
-    closeButton position: (230 @ 375).
-    
-    startSpace show.
+	| startSpace title startButton closeButton |
+	BlText.
+	startSpace := BlSpace new
+		              extent: 800 @ 600;
+		              title: 'JEU SNAKE';
+		              resizable: false.
+	startSpace root addChild: self createBackGroundImage.
+	title := BlTextElement new.
+	title
+		text: ('JEU SNAKE' asRopedText bold fontSize: 100);
+		position: 30 @ 30.
+	startSpace root addChild: title.
+	title position: 120 @ 40.
+
+	startButton := BlElement new.
+	startButton
+		size: 300 @ 50;
+		background: Color green;
+		border: (BlBorder paint: Color black width: 2);
+		addEventHandler: (BlEventHandler
+				 on: BlClickEvent
+				 do: [
+					 startSpace close.
+					 self openGame ]).
+
+	startButton addChild: (BlTextElement new
+			 text: ('Commencer le jeu' asRopedText fontSize: 30);
+			 position: 40 @ 10).
+	startSpace root addChild: startButton.
+	startButton position: 230 @ 275.
+
+	closeButton := BlElement new.
+	closeButton
+		size: 300 @ 50;
+		background: Color red;
+		border: (BlBorder paint: Color black width: 2);
+		addEventHandler: (BlEventHandler
+				 on: BlClickEvent
+				 do: [ startSpace close ]).
+
+	closeButton addChild: (BlTextElement new
+			 text: ('Fermer' asRopedText fontSize: 30);
+			 position: 110 @ 10).
+	startSpace root addChild: closeButton.
+	closeButton position: 230 @ 375.
+
+	startSpace show
 ]
 
 { #category : #'as yet unclassified' }
